@@ -1,4 +1,12 @@
 # 20260306
+# 0.2.0: Accept resolution and frequency as arguments.
+
+1. Remove default width and height. Resolution is now required.
+2. /REFRESH/DEFAULT_REFRESH/
+3. + parse_resolution(): Accept WIDTH x HEIGHT [@ REFRESH], WIDTHxHEIGHT[@REFRESH], or WIDTH HEIGHT [REFRESH].
+4. ~ usage(): Document resolution argument formats and examples.
+
+# 20260306
 # 0.1.0: Use `cvt` with `gtf` now as fallback.
 
 1. ~ generate_modeline(): Use `cvt` with `gtf` now as fallback.

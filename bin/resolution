@@ -2,22 +2,60 @@
 # resolution
 
 # 20260306
-# 0.1.0
+# 0.2.0
 
-WIDTH=2560
-HEIGHT=1600
-REFRESH=60
+DEFAULT_REFRESH=60
 
 usage() {
-  echo "resolution - Set display to ${WIDTH}x${HEIGHT}@${REFRESH}Hz via xrandr."
+  echo "resolution - Add a display resolution mode via xrandr."
   echo
-  echo "Usage: resolution [options]"
+  echo "Usage: resolution [options] WIDTH x HEIGHT [@ REFRESH]"
+  echo "       resolution [options] WIDTHxHEIGHT[@REFRESH]"
+  echo "       resolution [options] WIDTH HEIGHT [REFRESH]"
+  echo
+  echo "If REFRESH is not given, defaults to 60Hz."
   echo
   echo "Options:"
   echo "  -o, --output OUTPUT  Specify xrandr output (default: auto-detect DP)"
   echo "  -p, --persist        Write to ~/.xprofile for persistence across reboots"
   echo "  -n, --dry-run        Show what would happen without doing it"
   echo "  -h, --help           Show this help"
+  echo
+  echo "Examples:"
+  echo "  resolution 1920 x 1080 @ 60"
+  echo "  resolution 2560 x 1600"
+  echo "  resolution 2560x1600@60"
+  echo "  resolution 2560x1600"
+  echo "  resolution 2560 1600 60"
+  echo "  resolution 2560 1600"
+}
+
+parse_resolution() {
+  local joined
+  joined=$(echo "$@" | tr -d ' ')
+  local w h r
+  if echo "$joined" | grep -q '[xX]'; then
+    w=$(echo "$joined" | sed 's/[xX].*//')
+    local remainder
+    remainder=$(echo "$joined" | sed 's/^[0-9]*[xX]//')
+    if echo "$remainder" | grep -q '@'; then
+      h=$(echo "$remainder" | sed 's/@.*//')
+      r=$(echo "$remainder" | sed 's/.*@//')
+    else
+      h="$remainder"
+      r=""
+    fi
+  else
+    w="$1"
+    h="$2"
+    r="$3"
+  fi
+  if [ -z "$w" ] || [ -z "$h" ]; then
+    return 1
+  fi
+  WIDTH="$w"
+  HEIGHT="$h"
+  REFRESH="${r:-$DEFAULT_REFRESH}"
 }
 
 detect_output() {
@@ -87,6 +125,7 @@ persist_mode() {
 main() {
   local output=""
   local persist=false
+  local args=""
   DRY_RUN=false
   while [ $# -gt 0 ]; do
     case "$1" in
@@ -94,9 +133,21 @@ main() {
       -p|--persist) persist=true; shift;;
       -n|--dry-run) DRY_RUN=true; shift;;
       -h|--help) usage; exit 0;;
-      *) echo "Unknown option: $1"; usage; exit 1;;
+      -*) echo "Unknown option: $1"; usage; exit 1;;
+      *) args="$args $1"; shift;;
     esac
   done
+  args=$(echo "$args" | sed 's/^ //')
+  if [ -z "$args" ]; then
+    usage
+    exit 1
+  fi
+  parse_resolution $args
+  if [ $? -ne 0 ]; then
+    usage
+    exit 1
+  fi
+  echo "Resolution: ${WIDTH}x${HEIGHT}@${REFRESH}Hz"
   if [ -z "$output" ]; then
     output=$(detect_output)
     if [ -z "$output" ]; then
@@ -108,7 +159,7 @@ main() {
   local modeline
   modeline=$(generate_modeline)
   if [ -z "$modeline" ]; then
-    echo "Error: Failed to generate modeline. Is gtf installed?" >&2
+    echo "Error: Failed to generate modeline." >&2
     exit 1
   fi
   echo "Modeline: $modeline"
