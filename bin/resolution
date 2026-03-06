@@ -2,16 +2,7 @@
 # resolution
 
 # 20260306
-# 0.0.0
-
-# Initial:
-# -/0: Enable setting the ideal resolution for an HP ZR30W for Linux Mint out of the box.
-# 1. Use fixed 2560 width, 1600 height, and 60Hz refresh.
-# 2. Use `gtf` for detection.
-# 3. + --output specify the display.
-# 4. + --persist persist the mode for reboots.
-# 5. + --dry-run
-# 6. + --help
+# 0.1.0
 
 WIDTH=2560
 HEIGHT=1600
@@ -34,7 +25,14 @@ detect_output() {
 }
 
 generate_modeline() {
-  gtf "$WIDTH" "$HEIGHT" "$REFRESH" | grep 'Modeline' | sed 's/.*Modeline //' | tr -d '"'
+  if command -v cvt > /dev/null 2>&1; then
+    cvt "$WIDTH" "$HEIGHT" "$REFRESH" | grep 'Modeline' | sed 's/.*Modeline //' | tr -d '"'
+  elif command -v gtf > /dev/null 2>&1; then
+    gtf "$WIDTH" "$HEIGHT" "$REFRESH" | grep 'Modeline' | sed 's/.*Modeline //' | tr -d '"'
+  else
+    echo "Error: Neither cvt nor gtf found." >&2
+    return 1
+  fi
 }
 
 mode_name() {

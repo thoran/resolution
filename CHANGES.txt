@@ -1,0 +1,15 @@
+# 20260306
+# 0.1.0: Use `cvt` with `gtf` now as fallback.
+
+1. ~ generate_modeline(): Use `cvt` with `gtf` now as fallback.
+2. + CHANGES.txt
+
+# 20260306
+# 0.0.0: Enable setting the ideal resolution for an HP 30W for Linux Mint out of the box.
+
+1. Use fixed 2560 width, 1600 height, and 60Hz refresh.
+2. Use `gtf` for detection.
+3. + --output specify the display.
+4. + --persist persist the mode for reboots.
+5. + --dry-run
+6. + --help
